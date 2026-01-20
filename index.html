@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<title>MOON-Terapeuta de energia</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&family=Merriweather:wght@400&family=Macondo&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">      
+</head>
+<body>
+<audio id="musicaReiki" autoplay loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    Tu navegador no soporta el elemento de audio.
+</audio>
+
+<div class="controles-musica">
+    <button id="btnMusica" class="btn-musica" title="Pausar música">🔊</button>
+</div>
+
+<div class="logo-header">
+    <img src="logo blanco fondo negro.jpeg" alt="Logo de MOON-Terapeuta de energia" class="logo-imagen">
+    <div class="texto-superpuesto">
+        <p>Terapias alternativas</p>
+        <p>MOON</p>
+    </div>
+</div>
+
+<div class="contenido-principal">
+    <p>Atención terapéutica integral enfocada en tu salud y bienestar.</p>
+    <p>Mediante acupuntura, quiropráctica, reiki y herbolaria, ofrezco tratamientos personalizados orientados a aliviar el dolor, mejorar la movilidad y apoyar el equilibrio general del organismo. Cada sesión se basa en una evaluación individual, con el objetivo de atender la causa del malestar y favorecer una recuperación funcional y natural.</p>
+</div>
+
+<div class="contenedor-seccion">
+    <div class="imagen-container">
+        <img src="" alt="Acupuntura" class="imagen-seccion">
+    </div>
+    <div class="seccion acupuntura">
+        <h2>Acupuntura</h2>
+        <p>Descripción sobre acupuntura. Técnica tradicional china que utiliza agujas finas para estimular puntos específicos del cuerpo, mejorando el flujo de energía y aliviando el dolor.</p>
+    </div>
+</div>
+
+<div class="contenedor-seccion">
+    <div class="imagen-container">
+        <img src="" alt="Quiropráctica" class="imagen-seccion">
+    </div>
+    <div class="seccion quiropractica">
+        <h2>Quiropráctica</h2>
+        <p>Descripción sobre quiropráctica. Enfocada en el tratamiento del sistema musculoesquelético, especialmente la columna vertebral, para mejorar la movilidad y reducir el dolor.</p>
+    </div>
+</div>
+
+<div class="contenedor-seccion">
+    <div class="imagen-container">
+        <img src="" alt="Reiki" class="imagen-seccion">
+    </div>
+    <div class="seccion reiki">
+        <h2>Reiki</h2>
+        <p>Descripción sobre reiki. Técnica de sanación energética que promueve la relajación profunda, reduce el estrés y favorece el equilibrio emocional y físico.</p>
+    </div>
+</div>
+
+<div class="contenedor-seccion">
+    <div class="imagen-container">
+        <img src="" alt="Herbolaria" class="imagen-seccion">
+    </div>
+    <div class="seccion herbolaria">
+        <h2>Herbolaria</h2>
+        <p>Descripción sobre herbolaria. Uso de plantas medicinales para tratar diversos padecimientos, potenciando las defensas del cuerpo y promoviendo una recuperación natural.</p>
+    </div>
+</div>
+
+<div class="seccion-terapeuta">
+    <div class="contenedor-circulo">
+        <div class="circulo-terapeuta" id="circuloTerapeuta">
+            <img src="" alt="Foto del terapeuta" class="foto-terapeuta">
+            <div class="globo-tooltip">Mi camino como terapeuta</div>
+        </div>
+    </div>
+    
+    <div id="contenidoCarrera" class="contenido-carrera" style="display: none;">
+        <div class="modal-carrera">
+            <span class="cerrar" id="cerrarModal">&times;</span>
+            <h2>Mi Carrera Profesional</h2>
+            <p>Aquí puedes escribir la carrera profesional del terapeuta, estudios, certificaciones, años de experiencia, logros, etc.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Control de música
+    const musicaReiki = document.getElementById('musicaReiki');
+    const btnMusica = document.getElementById('btnMusica');
+    let reproduciendo = true;
+    
+    btnMusica.addEventListener('click', function() {
+        if (reproduciendo) {
+            musicaReiki.pause();
+            btnMusica.textContent = '🔇';
+            btnMusica.title = 'Reanudar música';
+            reproduciendo = false;
+        } else {
+            musicaReiki.play();
+            btnMusica.textContent = '🔊';
+            btnMusica.title = 'Pausar música';
+            reproduciendo = true;
+        }
+    });
+    
+    // Control de círculo y modal
+    const circuloTerapeuta = document.getElementById('circuloTerapeuta');
+    const contenidoCarrera = document.getElementById('contenidoCarrera');
+    const cerrarModal = document.getElementById('cerrarModal');
+    
+    circuloTerapeuta.addEventListener('click', function() {
+        contenidoCarrera.style.display = 'flex';
+    });
+    
+    cerrarModal.addEventListener('click', function() {
+        contenidoCarrera.style.display = 'none';
+    });
+    
+    contenidoCarrera.addEventListener('click', function(e) {
+        if (e.target === contenidoCarrera) {
+            contenidoCarrera.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>

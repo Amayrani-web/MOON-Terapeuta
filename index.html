@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="styles.css">      
 </head>
 <body>
-<audio id="musicaReiki" autoplay loop>
+<audio id="musicaReiki" autoplay loop muted>
     <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
     Tu navegador no soporta el elemento de audio.
 </audio>
@@ -88,8 +88,28 @@
 </div>
 
 <script>
-    // Control de música
+    // Auto play de música con manejo de navegadores
     const musicaReiki = document.getElementById('musicaReiki');
+    
+    // Intentar reproducir al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        musicaReiki.muted = false;
+        musicaReiki.play().catch(function(error) {
+            console.log('Autoplay bloqueado, el usuario debe interactuar primero');
+        });
+    });
+    
+    // También intentar al primer click
+    document.addEventListener('click', function() {
+        if (musicaReiki.paused) {
+            musicaReiki.muted = false;
+            musicaReiki.play().catch(function(error) {
+                console.log('Error al reproducir:', error);
+            });
+        }
+    }, { once: true });
+    
+    // Control de música
     const btnMusica = document.getElementById('btnMusica');
     let reproduciendo = true;
     

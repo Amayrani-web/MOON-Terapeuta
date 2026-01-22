@@ -134,6 +134,17 @@ body {
     padding: 40px 20px;
 }
 
+.contenido-principal {
+    padding: 20px;
+}
+
+.contenido-principal p {
+    text-align: justify;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 15px;
+}
+
 .contenedor-circulo {
     display: flex;
     justify-content: center;
@@ -242,4 +253,141 @@ body {
     color: #333;
     line-height: 1.8;
     text-align: justify;
+}
+
+/* Media Queries para Responsive Design */
+@media (max-width: 768px) {
+    .logo-header {
+        height: 150px;
+        flex-direction: column;
+    }
+    
+    .logo-imagen {
+        width: 150px;
+        height: 150px;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .texto-superpuesto {
+        font-size: 36px;
+    }
+    
+    .contenedor-seccion {
+        float: none;
+        width: 100%;
+        margin: 15px;
+        flex-direction: column;
+    }
+    
+    .imagen-container {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .seccion {
+        padding: 15px;
+    }
+    
+    .seccion h2 {
+        font-size: 18px;
+    }
+    
+    .seccion p {
+        font-size: 14px;
+    }
+    
+    .circulo-terapeuta {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .globo-tooltip {
+        font-size: 12px;
+        padding: 8px 15px;
+        top: -50px;
+    }
+    
+    .controles-musica {
+        bottom: 20px;
+        right: 20px;
+    }
+    
+    .btn-musica {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-header {
+        height: 120px;
+    }
+    
+    .logo-imagen {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .texto-superpuesto {
+        font-size: 28px;
+    }
+    
+    .texto-superpuesto p {
+        margin: 5px 0;
+    }
+    
+    .contenedor-seccion {
+        margin: 10px;
+    }
+    
+    .imagen-container {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .seccion {
+        padding: 12px;
+    }
+    
+    .seccion h2 {
+        font-size: 16px;
+    }
+    
+    .seccion p {
+        font-size: 13px;
+    }
+    
+    .circulo-terapeuta {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .globo-tooltip {
+        font-size: 11px;
+        padding: 6px 12px;
+        top: -45px;
+    }
+    
+    .modal-carrera {
+        padding: 20px;
+        width: 95%;
+    }
+    
+    .modal-carrera h2 {
+        font-size: 20px;
+    }
+    
+    .modal-carrera p {
+        font-size: 13px;
+    }
+    
+    .contenido-principal {
+        padding: 10px;
+    }
+    
+    .contenido-principal p {
+        font-size: 13px;
+    }
 }

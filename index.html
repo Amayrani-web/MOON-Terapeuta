@@ -87,6 +87,70 @@
     </div>
 </div>
 
+<!-- Sección de Agendamiento -->
+<div class="seccion-agendamiento">
+    <h2>Agendar Cita</h2>
+    
+    <div class="contenedor-formulario">
+        <form id="formularioAgendamiento">
+            <div class="grupo-formulario">
+                <label for="fechaCita">Selecciona Fecha:</label>
+                <input type="date" id="fechaCita" required>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="horaCita">Selecciona Hora:</label>
+                <select id="horaCita" required>
+                    <option value="">-- Selecciona una hora --</option>
+                    <option value="08:00">08:00 AM</option>
+                    <option value="09:00">09:00 AM</option>
+                    <option value="10:00">10:00 AM</option>
+                    <option value="11:00">11:00 AM</option>
+                    <option value="12:00">12:00 PM</option>
+                    <option value="13:00">01:00 PM</option>
+                    <option value="14:00">02:00 PM</option>
+                    <option value="15:00">03:00 PM</option>
+                    <option value="16:00">04:00 PM</option>
+                    <option value="17:00">05:00 PM</option>
+                    <option value="18:00">06:00 PM</option>
+                </select>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="nombreCompleto">Nombre Completo:</label>
+                <input type="text" id="nombreCompleto" placeholder="Tu nombre completo" required>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="telefonoContacto">Número de Teléfono:</label>
+                <input type="tel" id="telefonoContacto" placeholder="Ej: +34 123 456 789" required>
+            </div>
+            
+            <button type="submit" class="btn-agendar">Agendar Cita</button>
+        </form>
+    </div>
+    
+    <div class="contenedor-tabla">
+        <h3>Citas Agendadas</h3>
+        <table id="tablaCitas" class="tabla-citas">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Nombre Completo</th>
+                    <th>Teléfono</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+                <tr class="fila-vacia">
+                    <td colspan="5">No hay citas agendadas</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <script>
     // Auto play de música con manejo de navegadores
     const musicaReiki = document.getElementById('musicaReiki');
@@ -145,6 +209,103 @@
             contenidoCarrera.style.display = 'none';
         }
     });
+    
+    // Sistema de agendamiento de citas
+    const formularioAgendamiento = document.getElementById('formularioAgendamiento');
+    const fechaCita = document.getElementById('fechaCita');
+    const horaCita = document.getElementById('horaCita');
+    const nombreCompleto = document.getElementById('nombreCompleto');
+    const telefonoContacto = document.getElementById('telefonoContacto');
+    const cuerpoTabla = document.getElementById('cuerpoTabla');
+    
+    // Cargar citas del localStorage
+    function cargarCitas() {
+        const citasGuardadas = localStorage.getItem('citasAgendadas');
+        return citasGuardadas ? JSON.parse(citasGuardadas) : [];
+    }
+    
+    // Guardar citas en localStorage
+    function guardarCitas(citas) {
+        localStorage.setItem('citasAgendadas', JSON.stringify(citas));
+    }
+    
+    // Actualizar tabla de citas
+    function actualizarTabla() {
+        const citas = cargarCitas();
+        cuerpoTabla.innerHTML = '';
+        
+        if (citas.length === 0) {
+            cuerpoTabla.innerHTML = '<tr class="fila-vacia"><td colspan="5">No hay citas agendadas</td></tr>';
+            return;
+        }
+        
+        citas.sort((a, b) => {
+            const fechaA = new Date(a.fecha + ' ' + a.hora);
+            const fechaB = new Date(b.fecha + ' ' + b.hora);
+            return fechaA - fechaB;
+        });
+        
+        citas.forEach((cita, index) => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${new Date(cita.fecha).toLocaleDateString('es-ES')}</td>
+                <td>${cita.hora}</td>
+                <td>${cita.nombre}</td>
+                <td>${cita.telefono}</td>
+                <td><button class="btn-eliminar" onclick="eliminarCita(${index})">Eliminar</button></td>
+            `;
+            cuerpoTabla.appendChild(fila);
+        });
+    }
+    
+    // Eliminar cita
+    window.eliminarCita = function(index) {
+        const citas = cargarCitas();
+        citas.splice(index, 1);
+        guardarCitas(citas);
+        actualizarTabla();
+    };
+    
+    // Manejar envío del formulario
+    formularioAgendamiento.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const citas = cargarCitas();
+        
+        // Verificar si ya existe una cita en esa fecha y hora
+        const citaExistente = citas.find(c => c.fecha === fechaCita.value && c.hora === horaCita.value);
+        
+        if (citaExistente) {
+            alert('Ya existe una cita agendada para esa fecha y hora. Por favor, selecciona otro horario.');
+            return;
+        }
+        
+        const nuevaCita = {
+            fecha: fechaCita.value,
+            hora: horaCita.value,
+            nombre: nombreCompleto.value,
+            telefono: telefonoContacto.value
+        };
+        
+        citas.push(nuevaCita);
+        guardarCitas(citas);
+        
+        // Limpiar formulario
+        formularioAgendamiento.reset();
+        
+        // Actualizar tabla
+        actualizarTabla();
+        
+        // Mensaje de confirmación
+        alert('¡Cita agendada correctamente! Te contactaremos pronto.');
+    });
+    
+    // Establecer fecha mínima en el input (hoy)
+    const hoy = new Date().toISOString().split('T')[0];
+    fechaCita.min = hoy;
+    
+    // Cargar citas al iniciar
+    actualizarTabla();
 </script>
 </body>
 </html>

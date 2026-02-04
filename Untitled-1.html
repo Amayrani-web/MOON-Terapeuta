@@ -297,4 +297,15 @@
         actualizarTabla();
         
         // Mensaje de confirmación
-        alert('¡Cita agendad (truncated)
+        alert('¡Cita agendada correctamente! Te contactaremos pronto.');
+    });
+    
+    // Establecer fecha mínima en el input (hoy)
+    const hoy = new Date().toISOString().split('T')[0];
+    fechaCita.min = hoy;
+    
+    // Cargar citas al iniciar
+    actualizarTabla();
+</script>
+</body>
+</html>

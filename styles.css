@@ -346,6 +346,33 @@ body {
     overflow-x: auto;
 }
 
+.contenedor-botones-excel {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+}
+
+.btn-descargar-excel {
+    padding: 14px 30px;
+    background-color: #27ae60;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-descargar-excel:hover {
+    background-color: #229954;
+    transform: translateY(-2px);
+}
+
+.btn-descargar-excel:active {
+    transform: translateY(0);
+}
+
 .contenedor-tabla h3 {
     color: #b052c0;
     margin-bottom: 20px;

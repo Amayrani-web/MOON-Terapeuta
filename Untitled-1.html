@@ -5,11 +5,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&family=Merriweather:wght@400&family=Macondo&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">      
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
 </head>
 <body>
 <audio id="musicaReiki" autoplay loop muted>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    <source src="Canción intro.mp3" type="audio/mpeg">
     Tu navegador no soporta el elemento de audio.
 </audio>
 
@@ -32,37 +33,37 @@
 
 <div class="contenedor-seccion">
     <div class="imagen-container">
-        <img src="" alt="Acupuntura" class="imagen-seccion">
+        <img src="Aculpuntura.jpg" alt="Acupuntura" class="imagen-seccion">
     </div>
     <div class="seccion acupuntura">
         <h2>Acupuntura</h2>
-        <p>Descripción sobre acupuntura. Técnica tradicional china que utiliza agujas finas para estimular puntos específicos del cuerpo, mejorando el flujo de energía y aliviando el dolor.</p>
+        <p>Técnica tradicional china que utiliza agujas finas para estimular puntos específicos del cuerpo, mejorando el flujo de energía y aliviando el dolor.</p>
     </div>
 </div>
 
 <div class="contenedor-seccion">
     <div class="imagen-container">
-        <img src="" alt="Quiropráctica" class="imagen-seccion">
+        <img src="Quiropractico.jpg" alt="Quiropractico" class="imagen-seccion">
     </div>
     <div class="seccion quiropractica">
         <h2>Quiropráctica</h2>
-        <p>Descripción sobre quiropráctica. Enfocada en el tratamiento del sistema musculoesquelético, especialmente la columna vertebral, para mejorar la movilidad y reducir el dolor.</p>
+        <p>Enfocada en el tratamiento del sistema musculoesquelético, especialmente la columna vertebral, para mejorar la movilidad y reducir el dolor.</p>
     </div>
 </div>
 
 <div class="contenedor-seccion">
     <div class="imagen-container">
-        <img src="" alt="Reiki" class="imagen-seccion">
+        <img src="reiki.jpg" alt="reiki" class="imagen-seccion">
     </div>
     <div class="seccion reiki">
         <h2>Reiki</h2>
-        <p>Descripción sobre reiki. Técnica de sanación energética que promueve la relajación profunda, reduce el estrés y favorece el equilibrio emocional y físico.</p>
+        <p>Técnica de sanación energética que promueve la relajación profunda, reduce el estrés y favorece el equilibrio emocional y físico.</p>
     </div>
 </div>
 
 <div class="contenedor-seccion">
     <div class="imagen-container">
-        <img src="" alt="Herbolaria" class="imagen-seccion">
+        <img src="herbolaria.jpg" alt="Herbolaria" class="imagen-seccion">
     </div>
     <div class="seccion herbolaria">
         <h2>Herbolaria</h2>
@@ -73,7 +74,7 @@
 <div class="seccion-terapeuta">
     <div class="contenedor-circulo">
         <div class="circulo-terapeuta" id="circuloTerapeuta">
-            <img src="" alt="Foto del terapeuta" class="foto-terapeuta">
+            <img src="Monserrat.jpg" alt="Foto del terapeuta" class="foto-terapeuta">
             <div class="globo-tooltip">Mi camino como terapeuta</div>
         </div>
     </div>
@@ -82,7 +83,7 @@
         <div class="modal-carrera">
             <span class="cerrar" id="cerrarModal">&times;</span>
             <h2>Mi Carrera Profesional</h2>
-            <p>Aquí puedes escribir la carrera profesional del terapeuta, estudios, certificaciones, años de experiencia, logros, etc.</p>
+            <p>Tengo mucho tiempo que no le paso a mi hermana lo que me pide para terminar mipágia, aunque ella aún hace ajustes, me vale no pasarle fotos por que no tengo según yo.</p>
         </div>
     </div>
 </div>
@@ -128,26 +129,6 @@
             
             <button type="submit" class="btn-agendar">Agendar Cita</button>
         </form>
-    </div>
-    
-    <div class="contenedor-tabla">
-        <h3>Citas Agendadas</h3>
-        <table id="tablaCitas" class="tabla-citas">
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Hora</th>
-                    <th>Nombre Completo</th>
-                    <th>Teléfono</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody id="cuerpoTabla">
-                <tr class="fila-vacia">
-                    <td colspan="5">No hay citas agendadas</td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </div>
 
@@ -216,7 +197,6 @@
     const horaCita = document.getElementById('horaCita');
     const nombreCompleto = document.getElementById('nombreCompleto');
     const telefonoContacto = document.getElementById('telefonoContacto');
-    const cuerpoTabla = document.getElementById('cuerpoTabla');
     
     // Cargar citas del localStorage
     function cargarCitas() {
@@ -229,33 +209,81 @@
         localStorage.setItem('citasAgendadas', JSON.stringify(citas));
     }
     
-    // Actualizar tabla de citas
-    function actualizarTabla() {
+    // Actualizar horas disponibles según la fecha seleccionada
+    function actualizarHorasDisponibles() {
+        const fechaSeleccionada = fechaCita.value;
         const citas = cargarCitas();
-        cuerpoTabla.innerHTML = '';
+        
+        // Obtener horas ya agendadas para la fecha seleccionada
+        const horasAgendadas = citas
+            .filter(cita => cita.fecha === fechaSeleccionada)
+            .map(cita => cita.hora);
+        
+        // Mostrar/ocultar opciones
+        const opciones = horaCita.querySelectorAll('option');
+        opciones.forEach(opcion => {
+            if (opcion.value === '') {
+                opcion.style.display = 'block';
+            } else if (horasAgendadas.includes(opcion.value)) {
+                opcion.style.display = 'none';
+            } else {
+                opcion.style.display = 'block';
+            }
+        });
+        
+        // Resetear la selección de hora
+        horaCita.value = '';
+    }
+    
+    // Event listener para cambios en la fecha
+    fechaCita.addEventListener('change', actualizarHorasDisponibles);
+    
+    // Función para descargar citas en Excel
+    function descargarExcel() {
+        const citas = cargarCitas();
         
         if (citas.length === 0) {
-            cuerpoTabla.innerHTML = '<tr class="fila-vacia"><td colspan="5">No hay citas agendadas</td></tr>';
+            alert('No hay citas para descargar');
             return;
         }
         
-        citas.sort((a, b) => {
-            const fechaA = new Date(a.fecha + ' ' + a.hora);
-            const fechaB = new Date(b.fecha + ' ' + b.hora);
-            return fechaA - fechaB;
-        });
+        // Preparar datos para Excel
+        const datosExcel = citas.map(cita => ({
+            'Fecha': new Date(cita.fecha).toLocaleDateString('es-ES'),
+            'Hora': cita.hora,
+            'Nombre Completo': cita.nombre,
+            'Teléfono': cita.telefono
+        }));
         
-        citas.forEach((cita, index) => {
-            const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td>${new Date(cita.fecha).toLocaleDateString('es-ES')}</td>
-                <td>${cita.hora}</td>
-                <td>${cita.nombre}</td>
-                <td>${cita.telefono}</td>
-                <td><button class="btn-eliminar" onclick="eliminarCita(${index})">Eliminar</button></td>
-            `;
-            cuerpoTabla.appendChild(fila);
-        });
+        // Crear workbook y worksheet
+        const ws = XLSX.utils.json_to_sheet(datosExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Citas');
+        
+        // Ajustar anchos de columna
+        ws['!cols'] = [
+            { wch: 15 },
+            { wch: 12 },
+            { wch: 20 },
+            { wch: 18 }
+        ];
+        
+        // Descargar archivo
+        XLSX.writeFile(wb, 'Citas_MOON.xlsx');
+    }
+    
+    // Event listener para botón de Excel
+    const btnDescargarExcel = document.getElementById('btnDescargarExcel');
+    if (btnDescargarExcel) {
+        btnDescargarExcel.addEventListener('click', descargarExcel);
+    }
+    
+    // Actualizar tabla de citas (ahora solo recalcula horas disponibles)
+    function actualizarTabla() {
+        // Actualizar horas disponibles si hay una fecha seleccionada
+        if (fechaCita.value) {
+            actualizarHorasDisponibles();
+        }
     }
     
     // Eliminar cita
@@ -271,6 +299,7 @@
         e.preventDefault();
         
         const citas = cargarCitas();
+        const fechaSeleccionada = fechaCita.value; // Guardar la fecha antes de resetear
         
         // Verificar si ya existe una cita en esa fecha y hora
         const citaExistente = citas.find(c => c.fecha === fechaCita.value && c.hora === horaCita.value);
@@ -293,6 +322,10 @@
         // Limpiar formulario
         formularioAgendamiento.reset();
         
+        // Restaurar la fecha seleccionada y actualizar horas disponibles
+        fechaCita.value = fechaSeleccionada;
+        actualizarHorasDisponibles();
+        
         // Actualizar tabla
         actualizarTabla();
         
@@ -306,6 +339,41 @@
     
     // Cargar citas al iniciar
     actualizarTabla();
+    
+    // Función privada para generar Excel (se ejecuta desde consola: descargarCitasExcel())
+    window.descargarCitasExcel = function() {
+        const citas = cargarCitas();
+        
+        if (citas.length === 0) {
+            alert('No hay citas agendadas para descargar.');
+            return;
+        }
+        
+        // Crear datos para el Excel
+        const datosExcel = citas.map(cita => ({
+            Fecha: new Date(cita.fecha).toLocaleDateString('es-ES'),
+            Hora: cita.hora,
+            'Nombre Completo': cita.nombre,
+            'Teléfono': cita.telefono
+        }));
+        
+        // Crear libro de trabajo
+        const ws = XLSX.utils.json_to_sheet(datosExcel);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Citas");
+        
+        // Ajustar ancho de columnas
+        ws['!cols'] = [
+            { wch: 15 },
+            { wch: 12 },
+            { wch: 25 },
+            { wch: 20 }
+        ];
+        
+        // Descargar archivo
+        XLSX.writeFile(wb, "Citas_Agendadas.xlsx");
+        console.log('Excel descargado correctamente');
+    };
 </script>
 </body>
 </html>

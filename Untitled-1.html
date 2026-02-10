@@ -116,6 +116,17 @@
                     <option value="18:00">06:00 PM</option>
                 </select>
             </div>
+
+            <div class="grupo-formulario">
+                <label for="tipodesesion">Tipo de sesión:</label>
+                <select id="tipodesesion" required>
+                    <option value="">-- Selecciona tipo de sesión --</option>
+                    <option value="Acupuntura">Acupuntura</option>
+                    <option value="Quiropráctica">Quiropráctica</option>
+                    <option value="Reiki">Reiki</option>
+                    <option value="Herbolaria">Herbolaria</option>
+                </select>
+            </div>
             
             <div class="grupo-formulario">
                 <label for="nombreCompleto">Nombre Completo:</label>
@@ -130,6 +141,37 @@
             <button type="submit" class="btn-agendar">Agendar Cita</button>
         </form>
     </div>
+</div>
+
+<!-- Panel de Administración (oculto, acceso por contraseña) -->
+<div class="admin-access" style="position:fixed; right:12px; bottom:12px; z-index:9999;">
+    <button id="btnAdmin" class="btn-admin" style="padding:8px 10px; border-radius:8px; background:#2b2b2b; color:#fff; border:none; cursor:pointer;">🔒 Admin</button>
+</div>
+
+<div id="panelAdmin" class="panel-admin" style="display:none; position:fixed; right:20px; top:60px; width:420px; max-height:70vh; overflow:auto; background:#fff; box-shadow:0 6px 20px rgba(0,0,0,0.15); border-radius:8px; padding:12px; z-index:10000;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <h3 style="margin:0; font-size:16px;">Panel Admin - Citas</h3>
+        <div>
+            <button id="btnExportAdmin" style="margin-right:6px; padding:6px 8px; border-radius:6px;">Descargar Excel</button>
+            <button id="cerrarAdmin" style="padding:6px 8px; border-radius:6px;">Cerrar</button>
+        </div>
+    </div>
+    <hr>
+    <div id="adminMsg" style="min-height:20px; color:#b00; font-size:13px; margin-bottom:6px;"></div>
+
+    <!-- Login interno para acceso admin -->
+    <div id="adminLogin" style="margin-bottom:10px;">
+        <label for="adminPasswordInput" style="font-size:13px;">Contraseña:</label>
+        <input id="adminPasswordInput" type="password" style="margin-left:6px; padding:6px; width:170px;">
+        <button id="btnAdminLogin" style="margin-left:6px; padding:6px 8px; border-radius:6px;">Acceder</button>
+        <button id="btnAdminCancel" style="margin-left:6px; padding:6px 8px; border-radius:6px;">Cancelar</button>
+    </div>
+
+    <table id="tablaCitasAdmin" style="display:none; width:100%; border-collapse:collapse; font-size:14px;">
+        <tbody>
+            <!-- Filas dinámicas -->
+        </tbody>
+    </table>
 </div>
 
 <script>
@@ -193,6 +235,7 @@
     
     // Sistema de agendamiento de citas
     const formularioAgendamiento = document.getElementById('formularioAgendamiento');
+    const tipodesesion = document.getElementById('tipodesesion');
     const fechaCita = document.getElementById('fechaCita');
     const horaCita = document.getElementById('horaCita');
     const nombreCompleto = document.getElementById('nombreCompleto');
@@ -202,6 +245,18 @@
     function cargarCitas() {
         const citasGuardadas = localStorage.getItem('citasAgendadas');
         return citasGuardadas ? JSON.parse(citasGuardadas) : [];
+    }
+
+    // Helper: sumar una hora en formato HH:MM (asume minutos = 00)
+    function sumarUnaHora(hora) {
+        if (!hora) return '';
+        const parts = hora.split(':');
+        let h = parseInt(parts[0], 10);
+        const m = parts[1] || '00';
+        h = (h + 1);
+        // Formatear con dos dígitos
+        const hh = h < 10 ? '0' + h : '' + h;
+        return hh + ':' + (m.length ? m : '00');
     }
     
     // Guardar citas en localStorage
@@ -213,24 +268,31 @@
     function actualizarHorasDisponibles() {
         const fechaSeleccionada = fechaCita.value;
         const citas = cargarCitas();
-        
+
         // Obtener horas ya agendadas para la fecha seleccionada
         const horasAgendadas = citas
             .filter(cita => cita.fecha === fechaSeleccionada)
             .map(cita => cita.hora);
-        
+
+        // Añadir bloqueo de la hora siguiente para sesiones de Reiki ya agendadas
+        const reikiBloqueos = citas
+            .filter(cita => cita.fecha === fechaSeleccionada && cita.tipo === 'Reiki')
+            .map(cita => sumarUnaHora(cita.hora));
+
+        const horasBloqueadas = Array.from(new Set(horasAgendadas.concat(reikiBloqueos)));
+
         // Mostrar/ocultar opciones
         const opciones = horaCita.querySelectorAll('option');
         opciones.forEach(opcion => {
             if (opcion.value === '') {
                 opcion.style.display = 'block';
-            } else if (horasAgendadas.includes(opcion.value)) {
+            } else if (horasBloqueadas.includes(opcion.value)) {
                 opcion.style.display = 'none';
             } else {
                 opcion.style.display = 'block';
             }
         });
-        
+
         // Resetear la selección de hora
         horaCita.value = '';
     }
@@ -243,14 +305,15 @@
         const citas = cargarCitas();
         
         if (citas.length === 0) {
-            alert('No hay citas para descargar');
+            console.log('No hay citas para descargar');
             return;
         }
         
-        // Preparar datos para Excel
+        // Preparar datos para Excel (incluye tipo de sesión)
         const datosExcel = citas.map(cita => ({
             'Fecha': new Date(cita.fecha).toLocaleDateString('es-ES'),
             'Hora': cita.hora,
+            'Tipo de sesión': cita.tipo || '',
             'Nombre Completo': cita.nombre,
             'Teléfono': cita.telefono
         }));
@@ -264,6 +327,7 @@
         ws['!cols'] = [
             { wch: 15 },
             { wch: 12 },
+            { wch: 18 },
             { wch: 20 },
             { wch: 18 }
         ];
@@ -297,23 +361,50 @@
     // Manejar envío del formulario
     formularioAgendamiento.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         const citas = cargarCitas();
         const fechaSeleccionada = fechaCita.value; // Guardar la fecha antes de resetear
-        
-        // Verificar si ya existe una cita en esa fecha y hora
-        const citaExistente = citas.find(c => c.fecha === fechaCita.value && c.hora === horaCita.value);
-        
-        if (citaExistente) {
-            alert('Ya existe una cita agendada para esa fecha y hora. Por favor, selecciona otro horario.');
+        const horaSeleccionada = horaCita.value;
+        const tipoSeleccionado = tipodesesion.value;
+
+        // Construir horas reservadas para la fecha (incluye bloqueos por Reiki existentes)
+        const horasOcupadas = citas
+            .filter(c => c.fecha === fechaSeleccionada)
+            .reduce((acc, c) => {
+                acc.push(c.hora);
+                if (c.tipo === 'Reiki') acc.push(sumarUnaHora(c.hora));
+                return acc;
+            }, []);
+
+        // Verificar conflicto en la hora seleccionada
+        if (horasOcupadas.includes(horaSeleccionada)) {
+            alert('La hora seleccionada no está disponible. Por favor, elige otra hora.');
             return;
+        }
+
+        // Si es Reiki, verificar que la hora siguiente exista y esté libre
+        if (tipoSeleccionado === 'Reiki') {
+            const siguiente = sumarUnaHora(horaSeleccionada);
+            // Verificar que el siguiente horario esté entre las opciones del select
+            const existeSiguiente = Array.from(horaCita.options).some(opt => opt.value === siguiente);
+            if (!existeSiguiente) {
+                alert('No hay hora disponible después de la seleccionada para una sesión de Reiki. Elige otra hora.');
+                return;
+            }
+            // Verificar que la hora siguiente no esté ocupada por otra cita
+            const horasSimples = citas.filter(c => c.fecha === fechaSeleccionada).map(c => c.hora);
+            if (horasSimples.includes(siguiente)) {
+                alert('La hora siguiente ya está ocupada, no se puede agendar una sesión de Reiki en este horario.');
+                return;
+            }
         }
         
         const nuevaCita = {
             fecha: fechaCita.value,
             hora: horaCita.value,
             nombre: nombreCompleto.value,
-            telefono: telefonoContacto.value
+            telefono: telefonoContacto.value,
+            tipo: tipodesesion.value
         };
         
         citas.push(nuevaCita);
@@ -345,14 +436,15 @@
         const citas = cargarCitas();
         
         if (citas.length === 0) {
-            alert('No hay citas agendadas para descargar.');
+            console.log('No hay citas agendadas para descargar.');
             return;
         }
         
-        // Crear datos para el Excel
+        // Crear datos para el Excel (incluye tipo de sesión)
         const datosExcel = citas.map(cita => ({
             Fecha: new Date(cita.fecha).toLocaleDateString('es-ES'),
             Hora: cita.hora,
+            'Tipo de sesión': cita.tipo || '',
             'Nombre Completo': cita.nombre,
             'Teléfono': cita.telefono
         }));
@@ -366,6 +458,7 @@
         ws['!cols'] = [
             { wch: 15 },
             { wch: 12 },
+            { wch: 18 },
             { wch: 25 },
             { wch: 20 }
         ];
@@ -374,6 +467,187 @@
         XLSX.writeFile(wb, "Citas_Agendadas.xlsx");
         console.log('Excel descargado correctamente');
     };
+
+    // --- Panel de administración ---
+    const ADMIN_PASSWORD = 'moon2026'; // Cambia esta contraseña si lo deseas
+    const btnAdmin = document.getElementById('btnAdmin');
+    const panelAdmin = document.getElementById('panelAdmin');
+    const cerrarAdmin = document.getElementById('cerrarAdmin');
+    const tablaCitasAdmin = document.getElementById('tablaCitasAdmin').querySelector('tbody');
+    const btnExportAdmin = document.getElementById('btnExportAdmin');
+
+    // Ocultar el botón de acceso admin (permanece accesible desde consola con abrirAdminPanel())
+    if (btnAdmin) {
+        btnAdmin.style.display = 'none';
+    }
+
+    // Mantener estado de autenticación del panel
+    let adminAutenticado = false;
+
+    // Función pública para abrir el panel desde la consola: abrirAdminPanel()
+    // NO solicita contraseña automáticamente; muestra el login interno
+    window.abrirAdminPanel = function() {
+        // Si el panel ya está visible, no volver a pedir contraseña
+        if (panelAdmin.style.display === 'block') {
+            panelAdmin.focus();
+            return;
+        }
+
+        adminAutenticado = false; // Reiniciar autenticación al abrir
+        panelAdmin.style.display = 'block';
+        // mostrar login y ocultar tabla
+        const adminLogin = document.getElementById('adminLogin');
+        const tabla = document.getElementById('tablaCitasAdmin');
+        const adminMsg = document.getElementById('adminMsg');
+        if (adminLogin) adminLogin.style.display = 'block';
+        if (tabla) tabla.style.display = 'none';
+        if (adminMsg) adminMsg.textContent = '';
+        const pwd = document.getElementById('adminPasswordInput');
+        if (pwd) pwd.value = '';
+        if (pwd) pwd.focus();
+    };
+
+    function renderTablaAdmin() {
+        const citas = cargarCitas();
+        const adminMsg = document.getElementById('adminMsg');
+        const adminLogin = document.getElementById('adminLogin');
+        const tabla = document.getElementById('tablaCitasAdmin');
+
+        // Si no está autenticado, mostrar login y ocultar tabla
+        if (!adminAutenticado) {
+            if (adminLogin) adminLogin.style.display = 'block';
+            if (tabla) tabla.style.display = 'none';
+            if (btnExportAdmin) {
+                btnExportAdmin.disabled = true;
+                btnExportAdmin.style.opacity = '0.6';
+                btnExportAdmin.title = 'Accede como administrador para exportar';
+            }
+            if (adminMsg) adminMsg.textContent = '';
+            return;
+        }
+
+        // Ya autenticado: mostrar tabla
+        if (adminLogin) adminLogin.style.display = 'none';
+        if (tabla) tabla.style.display = 'table';
+
+        if (!citas || citas.length === 0) {
+            tablaCitasAdmin.innerHTML = '<tr><td colspan="6" style="padding:10px; color:#666;">No hay citas agendadas.</td></tr>';
+            // Deshabilitar botón de export y mostrar mensaje corto
+            if (btnExportAdmin) {
+                btnExportAdmin.disabled = true;
+                btnExportAdmin.style.opacity = '0.6';
+                btnExportAdmin.title = 'No hay datos para exportar';
+            }
+            if (adminMsg) adminMsg.textContent = '';
+            return;
+        }
+        // Habilitar botón de export
+        if (btnExportAdmin) {
+            btnExportAdmin.disabled = false;
+            btnExportAdmin.style.opacity = '1';
+            btnExportAdmin.title = '';
+        }
+        if (adminMsg) adminMsg.textContent = '';
+
+        tablaCitasAdmin.innerHTML = citas.map((cita, index) => {
+            return `
+                <tr>
+                    <td style="padding:6px; border-bottom:1px solid #f1f1f1;">${new Date(cita.fecha).toLocaleDateString('es-ES')}</td>
+                    <td style="padding:6px; border-bottom:1px solid #f1f1f1;">${cita.hora}</td>
+                    <td style="padding:6px; border-bottom:1px solid #f1f1f1;">${cita.tipo || ''}</td>
+                    <td style="padding:6px; border-bottom:1px solid #f1f1f1;">${cita.nombre}</td>
+                    <td style="padding:6px; border-bottom:1px solid #f1f1f1;">${cita.telefono}</td>
+                    <td style="padding:6px; border-bottom:1px solid #f1f1f1; text-align:right;">
+                        <button style="padding:6px 8px; border-radius:6px;" onclick="(function(){
+                            const citasLocal = JSON.parse(localStorage.getItem('citasAgendadas')||'[]');
+                            citasLocal.splice(${index},1);
+                            localStorage.setItem('citasAgendadas', JSON.stringify(citasLocal));
+                            renderTablaAdmin();
+                            actualizarTabla();
+                        })()">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    btnAdmin.addEventListener('click', function() {
+        // Mostrar el panel de login interno (btnAdmin está oculto normalmente)
+        if (panelAdmin.style.display === 'block') return;
+        window.abrirAdminPanel();
+    });
+
+    cerrarAdmin.addEventListener('click', function() {
+        panelAdmin.style.display = 'none';
+        adminAutenticado = false;
+        const adminLogin = document.getElementById('adminLogin');
+        const tabla = document.getElementById('tablaCitasAdmin');
+        const pwd = document.getElementById('adminPasswordInput');
+        const adminMsg = document.getElementById('adminMsg');
+        if (adminLogin) adminLogin.style.display = 'block';
+        if (tabla) tabla.style.display = 'none';
+        if (pwd) pwd.value = '';
+        if (adminMsg) adminMsg.textContent = '';
+    });
+
+    // Conectar botones de login / cancel y exportación del panel admin con la función ya existente
+    const btnAdminLogin = document.getElementById('btnAdminLogin');
+    const btnAdminCancel = document.getElementById('btnAdminCancel');
+    const adminPasswordInput = document.getElementById('adminPasswordInput');
+
+    if (btnAdminLogin) {
+        btnAdminLogin.addEventListener('click', function() {
+            const valor = adminPasswordInput ? adminPasswordInput.value : '';
+            const adminMsg = document.getElementById('adminMsg');
+            if (valor === ADMIN_PASSWORD) {
+                adminAutenticado = true;
+                if (adminMsg) adminMsg.textContent = '';
+                renderTablaAdmin();
+            } else {
+                if (adminMsg) {
+                    adminMsg.textContent = 'Contraseña incorrecta';
+                    setTimeout(() => { adminMsg.textContent = ''; }, 3000);
+                }
+            }
+        });
+    }
+
+    if (btnAdminCancel) {
+        btnAdminCancel.addEventListener('click', function() {
+            // Cerrar el panel y resetear estado
+            panelAdmin.style.display = 'none';
+            adminAutenticado = false;
+            if (adminPasswordInput) adminPasswordInput.value = '';
+            const adminMsg = document.getElementById('adminMsg');
+            if (adminMsg) adminMsg.textContent = '';
+            const adminLogin = document.getElementById('adminLogin');
+            const tabla = document.getElementById('tablaCitasAdmin');
+            if (adminLogin) adminLogin.style.display = 'block';
+            if (tabla) tabla.style.display = 'none';
+        });
+    }
+
+    btnExportAdmin.addEventListener('click', function() {
+        if (!adminAutenticado) {
+            const adminMsg = document.getElementById('adminMsg');
+            if (adminMsg) {
+                adminMsg.textContent = 'Accede primero como administrador.';
+                setTimeout(() => { adminMsg.textContent = ''; }, 3000);
+            }
+            return;
+        }
+
+        const citasParaExportar = cargarCitas();
+        const adminMsg = document.getElementById('adminMsg');
+        if (!citasParaExportar || citasParaExportar.length === 0) {
+            adminMsg.textContent = 'No hay citas agendadas para descargar.';
+            setTimeout(() => { adminMsg.textContent = ''; }, 4000);
+            return;
+        }
+        // Llamar a la función existente que descarga el Excel
+        window.descargarCitasExcel();
+    });
+
 </script>
 </body>
 </html>
